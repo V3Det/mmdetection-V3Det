@@ -20,7 +20,7 @@
 <p>
 <div>
     <strong>
-        <a href='https://arxiv.org/pdf/2304.03752.pdf' target='_blank'>Paper</a>,
+        <a href='https://arxiv.org/abs/2304.03752' target='_blank'>Paper</a>,
         <a href='https://v3det.openxlab.org.cn/' target='_blank'>Dataset</a></br>
     </strong>
 </div>
