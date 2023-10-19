@@ -45,32 +45,33 @@ The data includes a training set, a validation set, comprising 13,204 categories
 
 ```
 data/
-    images/
-        <category_node>/
-            |────<image_name>.png
+    V3Det/
+        images/
+            <category_node>/
+                |────<image_name>.png
+                ...
             ...
-        ...
-    annotations/
-        |────v3det_2023_v1_category_tree.json       # Category tree
-        |────category_name_13204_v3det_2023_v1.txt  # Category name
-        |────v3det_2023_v1_train.json               # Train set
-        |────v3det_2023_v1_val.json                 # Validation set
+        annotations/
+            |────v3det_2023_v1_category_tree.json       # Category tree
+            |────category_name_13204_v3det_2023_v1.txt  # Category name
+            |────v3det_2023_v1_train.json               # Train set
+            |────v3det_2023_v1_val.json                 # Validation set
 ```
 
 ## Results and Models
 
-| Backbone |      Model      | Lr schd | GPU  | box AP |                                     Config                                     |                                                          Download                                                           |
-| :------: | :-------------: | :-----: | :--:  |:----: | :----------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------------------------: |
-|   R-50   |  Faster R-CNN   |   2x    |  8 | 25.4  |       [config](./faster_rcnn_r50_fpn_8x4_sample1e-3_mstrain_v3det_2x.py)       |  [model](https://download.openxlab.org.cn/models/V3Det/V3Det/weight//faster_rcnn_r50_fpn_8x4_sample1e-3_mstrain_v3det_2x)   |
-|   R-50   |  Cascade R-CNN  |   2x    |  8  | 31.6  |      [config](./cascade_rcnn_r50_fpn_8x4_sample1e-3_mstrain_v3det_2x.py)       |  [model](https://download.openxlab.org.cn/models/V3Det/V3Det/weight//cascade_rcnn_r50_fpn_8x4_sample1e-3_mstrain_v3det_2x)  |
-|   R-50   |      FCOS       |   2x    |  8  | 9.4   |          [config](./fcos_r50_fpn_8x4_sample1e-3_mstrain_v3det_2x.py)           |      [model](https://download.openxlab.org.cn/models/V3Det/V3Det/weight//fcos_r50_fpn_8x4_sample1e-3_mstrain_v3det_2x)      |
-|   R-50   | Deformable-DETR |   50e   |  8  | 34.4  |  [config](./deformable-detr-refine-twostage_r50_8xb4_sample1e-3_v3det_50e.py)  |                [model](https://download.openxlab.org.cn/models/V3Det/V3Det/weight/Deformable_DETR_V3Det_R50)                |
-|   R-50   |      DINO       |   36e   |  8  | 33.5  |            [config](./dino-4scale_r50_8xb2_sample1e-3_v3det_36e.py)            |                     [model](https://download.openxlab.org.cn/models/V3Det/V3Det/weight/DINO_V3Det_R50)                      |
-|  Swin-B  |  Faster R-CNN   |   2x    |  8  | 37.6  |      [config](./faster_rcnn_swinb_fpn_8x4_sample1e-3_mstrain_v3det_2x.py)      | [model](https://download.openxlab.org.cn/models/V3Det/V3Det/weight//faster_rcnn_swinb_fpn_8x4_sample1e-3_mstrain_v3det_2x)  |
-|  Swin-B  |  Cascade R-CNN  |   2x    |  8  | 42.5  |     [config](./cascade_rcnn_swinb_fpn_8x4_sample1e-3_mstrain_v3det_2x.py)      | [model](https://download.openxlab.org.cn/models/V3Det/V3Det/weight//cascade_rcnn_swinb_fpn_8x4_sample1e-3_mstrain_v3det_2x) |
-|  Swin-B  |      FCOS       |   2x    |  8  | 21.0  |         [config](./fcos_swinb_fpn_8x4_sample1e-3_mstrain_v3det_2x.py)          |     [model](https://download.openxlab.org.cn/models/V3Det/V3Det/weight//fcos_swinb_fpn_8x4_sample1e-3_mstrain_v3det_2x)     |
-|  Swin-B  | Deformable-DETR |   50e   |  16  | 42.5  | [config](./deformable-detr-refine-twostage_swin_16xb2_sample1e-3_v3det_50e.py) |               [model](https://download.openxlab.org.cn/models/V3Det/V3Det/weight/Deformable_DETR_V3Det_SwinB)               |
-|  Swin-B  |      DINO       |   36e   |  16  | 42.0  |           [config](./dino-4scale_swin_16xb1_sample1e-3_v3det_36e.py)           |                    [model](https://download.openxlab.org.cn/models/V3Det/V3Det/weight/DINO_V3Det_SwinB)                     |
+| Backbone |      Model      | Lr schd | box AP |                                     Config                                     |                                                          Download                                                           |
+| :------: | :-------------: | :-----: | :----: | :----------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------------------------: |
+|   R-50   |  Faster R-CNN   |   2x    |  25.4  |       [config](./faster_rcnn_r50_fpn_8x4_sample1e-3_mstrain_v3det_2x.py)       |  [model](https://download.openxlab.org.cn/models/V3Det/V3Det/weight//faster_rcnn_r50_fpn_8x4_sample1e-3_mstrain_v3det_2x)   |
+|   R-50   |  Cascade R-CNN  |   2x    |  31.6  |      [config](./cascade_rcnn_r50_fpn_8x4_sample1e-3_mstrain_v3det_2x.py)       |  [model](https://download.openxlab.org.cn/models/V3Det/V3Det/weight//cascade_rcnn_r50_fpn_8x4_sample1e-3_mstrain_v3det_2x)  |
+|   R-50   |      FCOS       |   2x    |  9.4   |          [config](./fcos_r50_fpn_8x4_sample1e-3_mstrain_v3det_2x.py)           |      [model](https://download.openxlab.org.cn/models/V3Det/V3Det/weight//fcos_r50_fpn_8x4_sample1e-3_mstrain_v3det_2x)      |
+|   R-50   | Deformable-DETR |   50e   |  34.4  |  [config](./deformable-detr-refine-twostage_r50_8xb4_sample1e-3_v3det_50e.py)  |                [model](https://download.openxlab.org.cn/models/V3Det/V3Det/weight/Deformable_DETR_V3Det_R50)                |
+|   R-50   |      DINO       |   36e   |  33.5  |            [config](./dino-4scale_r50_8xb2_sample1e-3_v3det_36e.py)            |                     [model](https://download.openxlab.org.cn/models/V3Det/V3Det/weight/DINO_V3Det_R50)                      |
+|  Swin-B  |  Faster R-CNN   |   2x    |  37.6  |      [config](./faster_rcnn_swinb_fpn_8x4_sample1e-3_mstrain_v3det_2x.py)      | [model](https://download.openxlab.org.cn/models/V3Det/V3Det/weight//faster_rcnn_swinb_fpn_8x4_sample1e-3_mstrain_v3det_2x)  |
+|  Swin-B  |  Cascade R-CNN  |   2x    |  42.5  |     [config](./cascade_rcnn_swinb_fpn_8x4_sample1e-3_mstrain_v3det_2x.py)      | [model](https://download.openxlab.org.cn/models/V3Det/V3Det/weight//cascade_rcnn_swinb_fpn_8x4_sample1e-3_mstrain_v3det_2x) |
+|  Swin-B  |      FCOS       |   2x    |  21.0  |         [config](./fcos_swinb_fpn_8x4_sample1e-3_mstrain_v3det_2x.py)          |     [model](https://download.openxlab.org.cn/models/V3Det/V3Det/weight//fcos_swinb_fpn_8x4_sample1e-3_mstrain_v3det_2x)     |
+|  Swin-B  | Deformable-DETR |   50e   |  42.5  | [config](./deformable-detr-refine-twostage_swin_16xb2_sample1e-3_v3det_50e.py) |               [model](https://download.openxlab.org.cn/models/V3Det/V3Det/weight/Deformable_DETR_V3Det_SwinB)               |
+|  Swin-B  |      DINO       |   36e   |  42.0  |           [config](./dino-4scale_swin_16xb1_sample1e-3_v3det_36e.py)           |                    [model](https://download.openxlab.org.cn/models/V3Det/V3Det/weight/DINO_V3Det_SwinB)                     |
 
 ## Citation
 
