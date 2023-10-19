@@ -22,6 +22,7 @@
     <strong>
         <a href='https://arxiv.org/abs/2304.03752' target='_blank'>Paper</a>,
         <a href='https://v3det.openxlab.org.cn/' target='_blank'>Dataset</a></br>
+        V3Det is supported in <a href='https://github.com/open-mmlab/mmdetection' target='_blank'>MMDetection</a> main branch.
     </strong>
 </div>
 </div>
