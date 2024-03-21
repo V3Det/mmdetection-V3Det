@@ -1,12 +1,12 @@
 # Copyright (c) OpenMMLab. All rights reserved.
 import copy
 import itertools
+import multiprocessing as mp
 import time
 from collections import defaultdict
 
 import mmengine
 import numpy as np
-import torch.multiprocessing as mp
 from mmengine.logging import MMLogger
 from pycocotools.cocoeval import COCOeval, Params
 from tqdm import tqdm
