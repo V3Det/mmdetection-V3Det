@@ -4,14 +4,45 @@ import itertools
 import time
 from collections import defaultdict
 
+import mmengine
 import numpy as np
 import torch.multiprocessing as mp
 from mmengine.logging import MMLogger
-from pycocotools.cocoeval import COCOeval
+from pycocotools.cocoeval import COCOeval, Params
 from tqdm import tqdm
 
 
 class COCOevalMP(COCOeval):
+
+    def __init__(self, cocoGt=None, cocoDt=None, iouType='bbox', num_proc=8,
+                 tree_ann_path='data/V3Det/annotations/v3det_2023_v1_category_tree.json'):
+        '''
+        Initialize CocoEval using coco APIs for gt and dt
+        :param cocoGt: coco object with ground truth annotations
+        :param cocoDt: coco object with detection results
+        :return: None
+        '''
+        if not iouType:
+            print('iouType not specified. use default iouType segm')
+        self.cocoGt = cocoGt  # ground truth COCO API
+        self.cocoDt = cocoDt  # detections COCO API
+        self.evalImgs = defaultdict(list)  # per-image per-category evaluation results [KxAxI] elements
+        self.eval = {}  # accumulated evaluation results
+        self._gts = defaultdict(list)  # gt for evaluation
+        self._dts = defaultdict(list)  # dt for evaluation
+        self.params = Params(iouType=iouType)  # parameters
+        self._paramsEval = {}  # parameters for evaluation
+        self.stats = []  # result summarization
+        self.ious = {}  # ious between all gts and dts
+        self.num_proc = num_proc  # num of process
+        self.tree_ann_path = tree_ann_path
+        if not mmengine.exists(tree_ann_path):
+            print(f'{tree_ann_path} not exist')
+            raise FileNotFoundError
+        if not cocoGt is None:
+            self.params.imgIds = sorted(cocoGt.getImgIds())
+            self.params.catIds = sorted(cocoGt.getCatIds())
+
 
     def _prepare(self):
         '''
@@ -24,6 +55,26 @@ class COCOevalMP(COCOeval):
             for ann in anns:
                 rle = coco.annToRLE(ann)
                 ann['segmentation'] = rle
+
+        # for each category, maintain its child categories
+        cat_tree = mmengine.load(self.tree_ann_path)
+        catid2treeid = cat_tree['categoryid2treeid']
+        treeid2catid = {v: k for k, v in catid2treeid.items()}
+        ori_ancestor2descendant = cat_tree['ancestor2descendant']
+        ancestor2descendant = dict()
+        for k, v in ori_ancestor2descendant.items():
+            if k in treeid2catid:
+                ancestor2descendant[k] = v
+        ancestor2descendant_catid = defaultdict(set)
+        for tree_id in ancestor2descendant:
+            cat_id = treeid2catid[tree_id]
+            descendant_ids = ancestor2descendant[tree_id]
+            for descendant_id in descendant_ids:
+                if descendant_id not in treeid2catid:
+                    continue
+                descendant_catid = treeid2catid[descendant_id]
+                ancestor2descendant_catid[int(cat_id)].add(int(descendant_catid))
+        self.ancestor2descendant_catid = ancestor2descendant_catid
 
         p = self.params
         if p.useCats:
@@ -39,10 +90,6 @@ class COCOevalMP(COCOeval):
                 if (dt['category_id'] in cat_ids) and (dt['image_id']
                                                        in img_ids):
                     dts.append(dt)
-            # gts=self.cocoGt.loadAnns(self.cocoGt.getAnnIds(imgIds=p.imgIds, catIds=p.catIds)) # noqa
-            # dts=self.cocoDt.loadAnns(self.cocoDt.getAnnIds(imgIds=p.imgIds, catIds=p.catIds)) # noqa
-            # gts=self.cocoGt.dataset['annotations']
-            # dts=self.cocoDt.dataset['annotations']
         else:
             gts = self.cocoGt.loadAnns(self.cocoGt.getAnnIds(imgIds=p.imgIds))
             dts = self.cocoDt.loadAnns(self.cocoDt.getAnnIds(imgIds=p.imgIds))
@@ -63,6 +110,21 @@ class COCOevalMP(COCOeval):
             self._gts[gt['image_id'], gt['category_id']].append(gt)
         for dt in dts:
             self._dts[dt['image_id'], dt['category_id']].append(dt)
+
+        # If a gt has child category cat_A, and dts of this image has this category, add this gt to gt<img_id, cat_A>
+        for gt in gts:
+            ignore_cats = []
+            for child_cat_id in self.ancestor2descendant_catid[gt['category_id']]:
+                if len(self._dts[gt['image_id'], child_cat_id]) > 0:
+                    ignore_cats.append(child_cat_id)
+            if len(ignore_cats) == 0:
+                continue
+            ignore_gt = copy.deepcopy(gt)
+            ignore_gt['category_id'] = ignore_cats
+            ignore_gt['ignore'] = 1
+            for child_cat_id in ignore_cats:
+                self._gts[gt['image_id'], child_cat_id].append(ignore_gt)
+
         self.evalImgs = defaultdict(
             list)  # per-image per-category evaluation results
         self.eval = {}  # accumulated evaluation results
@@ -102,7 +164,7 @@ class COCOevalMP(COCOeval):
             mp_params.append((catIds[begin:end], ))
 
         MMLogger.get_current_instance().info(
-            'start multi processing evaluation ...')
+            f'start multi processing evaluation with nproc: {nproc}...')
         with mp.Pool(nproc) as pool:
             self.evalImgs = pool.starmap(self._evaluateImg, mp_params)
 
@@ -116,14 +178,11 @@ class COCOevalMP(COCOeval):
         self._prepare()
         p = self.params
         maxDet = max(p.maxDets)
-        all_params = []
-        for catId in catids_chunk:
-            for areaRng in p.areaRng:
-                for imgId in p.imgIds:
-                    all_params.append((catId, areaRng, imgId))
+        all_params = itertools.product(catids_chunk, p.areaRng, p.imgIds)
+        all_params_len = len(catids_chunk) * len(p.areaRng) * len(p.imgIds)
         evalImgs = [
             self.evaluateImg(imgId, catId, areaRng, maxDet)
-            for catId, areaRng, imgId in tqdm(all_params)
+            for catId, areaRng, imgId in tqdm(all_params, total=all_params_len)
         ]
         return evalImgs
 
