@@ -24,4 +24,4 @@ model = dict(
         with_cp=False,
         convert_weights=True,
         init_cfg=dict(type='Pretrained', checkpoint=pretrained)),
-    neck=dict(in_channels=[128, 256, 512, 1024], force_grad_on_level=True))
+    neck=dict(in_channels=[128, 256, 512, 1024]))
